@@ -45,7 +45,60 @@ impl StateMachine for AccountedCurrency {
     type Transition = AccountingTransaction;
 
     fn next_state(starting_state: &Balances, t: &AccountingTransaction) -> Balances {
-        todo!("Exercise 1")
+        match t {
+            AccountingTransaction::Mint { minter, amount } => {
+                let mut balances = starting_state.clone();
+
+                let balance = balances.get(minter).unwrap_or(&0);
+                let new_balance = amount + (*balance);
+
+                if new_balance > 0 {
+                    balances.insert(*minter, new_balance);
+                }
+                balances
+            }
+            AccountingTransaction::Burn { burner, amount } => {
+                let mut balances = starting_state.clone();
+
+                let balance = balances.get(burner).unwrap_or(&0);
+                let new_balance = if balance <= amount {
+                    0
+                } else {
+                    balance.saturating_sub(*amount)
+                };
+
+                if new_balance > 0 {
+                    balances.insert(*burner, new_balance);
+                } else {
+                    balances.remove(burner);
+                }
+                balances
+            }
+            AccountingTransaction::Transfer {
+                sender,
+                receiver,
+                amount,
+            } => {
+                let mut balances = starting_state.clone();
+
+                let sender_balance = balances.get(sender).unwrap_or(&0);
+                if sender != receiver && sender_balance >= amount {
+                    let receiver_balance = balances.get(receiver).unwrap_or(&0);
+
+                    let sender_balance = sender_balance - *amount;
+                    let receiver_balance = receiver_balance + amount;
+
+                    if sender_balance > 0 {
+                        balances.insert(*sender, sender_balance);
+                    } else {
+                        balances.remove(sender);
+                    }
+                    balances.insert(*receiver, receiver_balance);
+                }
+
+                balances
+            }
+        }
     }
 }
 
