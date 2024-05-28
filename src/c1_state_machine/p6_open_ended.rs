@@ -22,9 +22,20 @@
 
 use super::StateMachine;
 
-pub struct State {}
+/// Blockchain
+/// Each block contain 5 transaction
+#[derive(Debug, Clone)]
+pub struct State {
+    
+}
 
-pub enum Transition {}
+pub enum Transition {
+    idle, // When no transaction found
+    CreatingBlock,
+    BroadcastBlock,
+    InsertBlock,
+    AddTX,
+}
 
 impl StateMachine for State {
     type State = State;
